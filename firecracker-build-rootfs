@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -ex
+MOUNTPOINT=/mnt/firecracker-rootfs
+IMAGE=build/firecracker.ext4
+
+mkdir -p $MOUNTPOINT
+umount $MOUNTPOINT || true
+mount $IMAGE $MOUNTPOINT
+nixos-install \
+  --impure --no-bootloader --no-root-passwd \
+  --root $MOUNTPOINT --flake .#firecracker
+umount $MOUNTPOINT

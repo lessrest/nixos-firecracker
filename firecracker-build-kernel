@@ -1,0 +1,5 @@
+#!/bin/sh
+set -ex
+nix build --cores 16 .#firecracker-vmlinux -o build/firecracker-vmlinux
+cp build/firecracker-vmlinux-dev/vmlinux build/firecracker.vmlinux
+chmod u+w build/firecracker.vmlinux
