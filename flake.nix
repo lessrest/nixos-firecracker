@@ -12,7 +12,7 @@
 
       nixosConfigurations.firecracker = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [(import ./firecracker-system.nix)];
+        modules = [(import ./firecracker-system.nix { inherit nixpkgs; })];
       };
 
       firecracker-vmlinux =

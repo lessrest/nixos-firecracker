@@ -1,3 +1,4 @@
+{ nixpkgs } :
 { pkgs, config, lib, ... }:
 
 let
@@ -5,21 +6,41 @@ let
 
 in {
   boot.isContainer = true;
+  boot.loader.grub.enable = false;
+  fileSystems."/" = { device = "/dev/vda"; };
   
+  nix = {
+    package = pkgs.nixUnstable;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+  };
+
+  nix.registry.nixpkgs.flake = nixpkgs;
+
   boot.kernelPackages = pkgs.linuxPackages_custom {
     inherit (kernel) src version;
     configfile = ./firecracker-kernel.config;
   };
 
-  fileSystems."/" = { device = "/dev/vda"; };
+  environment.variables.NIX_REMOTE = lib.mkForce "";
+
+  networking = {
+    hostName = "firecracker";
+    useHostResolvConf = false;
+    usePredictableInterfaceNames = false;
+    enableIPv6 = false;
+    dhcpcd.enable = false;
+    interfaces.eth0.ipv4.addresses = [{
+      address = "172.16.0.2";
+      prefixLength = 24;
+    }];
+    defaultGateway = "172.16.0.1";
+    nameservers = ["1.1.1.1" "8.8.8.8"];
+  };
 
   services.mingetty.autologinUser = "root";
-
   users.users.root.initialHashedPassword = "";
-
-  networking.dhcpcd.enable = false;
-
-  boot.loader.grub.enable = false;
 
   system.activationScripts.installInitScript = ''
     mkdir -p /sbin
@@ -40,5 +61,6 @@ in {
 
   environment.systemPackages = with pkgs; [
     clojure
+    ruby
   ];
 }

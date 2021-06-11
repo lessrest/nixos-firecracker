@@ -7,7 +7,7 @@
   "drives": [
     {
       "drive_id": "rootfs",
-      "path_on_host": "build/firecracker.ext4",
+      "path_on_host": "build/x.ext4",
       "is_root_device": true,
       "is_read_only": false
     }
