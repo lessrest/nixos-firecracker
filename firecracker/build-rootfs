@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -ex
 MOUNTPOINT=/mnt/firecracker-rootfs
-IMAGE=build/firecracker.ext4
+IMAGE=build/nixos.ext4
 
 mkdir -p $MOUNTPOINT
 umount $MOUNTPOINT || true
 mount $IMAGE $MOUNTPOINT
 nixos-install \
   --impure --no-bootloader --no-root-passwd \
-  --root $MOUNTPOINT --flake .#firecracker
+  --root $MOUNTPOINT --flake ../.#firecracker
 mkdir -p $MOUNTPOINT/sbin
 rm -f $MOUNTPOINT/sbin/init
 ln -sf /nix/var/nix/profiles/system/init $MOUNTPOINT/sbin/init

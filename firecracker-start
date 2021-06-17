@@ -1,6 +1,0 @@
-#!/bin/sh
-firectl \
-  --kernel=build/firecracker.vmlinux \
-  --root-drive=build/firecracker.ext4 \
-  --kernel-opts="console=ttyS0 reboot=k panic=1 pci=off" \
-  --tap-device=tap0/AA:FC:00:00:00:01

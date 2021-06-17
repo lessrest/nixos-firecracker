@@ -1,0 +1,6 @@
+#!/bin/sh
+firectl \
+  --kernel=build/vmlinux \
+  --root-drive=build/nixos.ext4 \
+  --kernel-opts="console=ttyS0 reboot=k panic=1 pci=off" \
+  --tap-device=tap2/AA:FC:00:00:00:02
