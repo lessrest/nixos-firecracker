@@ -31,6 +31,7 @@ let
           --kernel="${kernel}" \
           --kernel-opts="${kernelOpts}" \
           --socket-path="$SOCKET" \
+          --memory=4096 \
           --tap-device=tap$1/"$mac_hex"
       ''
     );
