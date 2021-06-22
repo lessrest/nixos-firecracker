@@ -176,6 +176,6 @@
 (selectrum-prescient-mode 1)
 (prescient-persist-mode 1)
 
-(load-theme 'humanoid-dark t)
+(load-theme 'deeper-blue t)
 
 (add-hook 'elixir-mode-hook 'lsp)
