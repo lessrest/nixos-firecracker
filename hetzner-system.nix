@@ -82,6 +82,21 @@ in {
     isSystemUser = true;
   };
 
+  services.gitDaemon = {
+    enable = true;
+    basePath = "/srv/git";
+    repositories = ["/srv/git"];
+  };
+
+  system.activationScripts = {
+    setupGitRoot = ''
+      mkdir -p /srv/git
+      chown git /srv/git
+      chgrp wheel /srv/git
+      chmod 775 /srv/git
+    '';
+  };
+
   boot.loader.grub.enable = true;
   boot.loader.grub.version = 2;
   boot.loader.grub.device = "/dev/nvme0n1";
@@ -99,7 +114,7 @@ in {
       enable = true;
       trustedInterfaces = ["tailscale0"];
       allowedUDPPorts = [config.services.tailscale.port];
-      allowedTCPPorts = [80 443];
+      allowedTCPPorts = [80 443 9418];
       allowPing = true;
     };
   };
