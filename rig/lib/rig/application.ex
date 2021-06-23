@@ -8,10 +8,9 @@ defmodule Rig.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # %{
-      #   id: Exexec,
-      #   start: {Exexec, :start_link, [[debug: true, verbose: true]]}
-      # },
+      {Cluster.Supervisor, [
+          [local: [strategy: Cluster.Strategy.LocalEpmd]],
+          [name: Rig.ClusterSupervisor]]},
       {Registry, keys: :unique, name: Rig.Registry},
       Rig.Firecracker.Supervisor
     ]
