@@ -2,6 +2,11 @@
 { config, pkgs, lib, ... }:
 
 let
+  mkKernelOpts = opts:
+    lib.concatStringsSep " "
+      (lib.mapAttrsToList
+        (k: v: if v == true then k else "${k}=${toString v}") opts);
+
   rig-start =
     pkgs.writeShellScriptBin "rig-start" (
       let
@@ -11,8 +16,15 @@ let
         imagePath = "${image}/nixos.img";
         kernel =
           "${self.firecracker-vmlinux}/vmlinux";
-        kernelOpts =
-          "console=ttyS0 reboot=k panic=1 pci=off init=${initPath}";
+        kernelOpts = mkKernelOpts {
+          init = initPath;
+          console = "ttyS0";
+          reboot = "k";
+          panic = 1;
+          pci = "off";
+          quiet = true;
+          loglevel = 1;
+        };
       in ''
         mkdir -p $1
         SOCKET=$1/socket
