@@ -101,7 +101,7 @@
   (global-set-key (kbd "C-c d f") 'describe-function)
   (global-set-key (kbd "C-c d m") 'describe-mode)
   (global-set-key (kbd "C-c f") 'projectile-find-file)
-  (global-set-key (kbd "C-c g") 'projectile-ag)
+  (global-set-key (kbd "C-c g") 'deadgrep)
   (global-set-key (kbd "C-c j") 'join-line)
   (global-set-key (kbd "C-c k") 'fundamental-mode)
   (global-set-key (kbd "C-c m") 'make-directory)
