@@ -9,8 +9,10 @@ defmodule Rig.Application do
   def start(_type, _args) do
     children = [
       {Cluster.Supervisor, [
-          [local: [strategy: Cluster.Strategy.LocalEpmd]],
+          [local: [strategy: Cluster.Strategy.LocalEpmd],
+           gossip: [strategy: Cluster.Strategy.Gossip]],
           [name: Rig.ClusterSupervisor]]},
+      {Phoenix.PubSub, name: Hyp.PubSub},
       {Registry, keys: :unique, name: Rig.Registry},
       Rig.Firecracker.Supervisor
     ]
@@ -60,7 +62,11 @@ defmodule Rig.Firecracker.Instance do
         pid: pid,
         os_pid: os_pid,
         hostname: "tap#{number}.local",
-        number: number
+        number: number,
+        stdout: %{lines: [], buffer: ""},
+        stderr: "",
+        password: nil,
+        ready: false
      }}
   end
 
@@ -71,15 +77,58 @@ defmodule Rig.Firecracker.Instance do
   end
 
   @impl true
-  def handle_info({:stdout, _pid, line}, state) do
-#    Logger.debug("rig #{state.number} out: #{line}")
-    {:noreply, state}
+  def handle_info({:stdout, _pid, data}, state) do
+    stdout =
+      case String.split(String.replace(data, "\r", ""), "\n") do
+        [x] ->
+          %{
+            lines: state.stdout.lines,
+            buffer: state.stdout.buffer <> x
+          }
+
+        xs ->
+          {buffer, [line | lines]} = List.pop_at(xs, -1)
+          %{
+            lines: state.stdout.lines ++ [(state.stdout.buffer <> line) | lines],
+            buffer: buffer
+          }
+      end
+
+    password =
+      state.password ||
+        Enum.find_value(stdout.lines, fn line ->
+          case Regex.run(~r/^Rig password: (.*)$/, line) do
+            [_, password] ->
+              Logger.info("rig #{state.number} password: #{password}")
+              Phoenix.PubSub.broadcast!(
+                Hyp.PubSub,
+                "rig",
+                {:rig, state.number, :password, password}
+              )
+              password
+
+            nil -> nil
+          end
+        end)
+
+    ready = Enum.any?(stdout.lines, fn line ->
+      String.contains?(line, "<<< Welcome to NixOS")
+    end)
+
+    if ready and !state.ready do
+      Logger.info("rig #{state.number} boot complete")
+      Phoenix.PubSub.broadcast!(
+        Hyp.PubSub, "rig", {:rig, state.number, :ready}
+      )
+    end
+
+    {:noreply, %{state | stdout: stdout, password: password, ready: ready}}
   end
 
   @impl true
-  def handle_info({:stderr, _pid, line}, state) do
-    Logger.debug("rig #{state.number} err: #{line}")
-    {:noreply, state}
+  def handle_info({:stderr, _pid, data}, state) do
+    Logger.debug("rig #{state.number} err: #{data}")
+    {:noreply, %{state | stderr: state.stderr <> data}}
   end
 
   @impl true

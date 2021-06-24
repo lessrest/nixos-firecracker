@@ -1,6 +1,9 @@
 defmodule Rig do
   def start(number) do
-    DynamicSupervisor.start_child(Rig.Firecracker.Supervisor, {Rig.Firecracker.Instance, number})
+    DynamicSupervisor.start_child(
+      Rig.Firecracker.Supervisor,
+      {Rig.Firecracker.Instance, number}
+    )
   end
 
   def stop(number) do
